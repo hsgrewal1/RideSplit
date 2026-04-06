@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RideSplit - Ride Sharing App</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="nav-logo">🚗 RideSplit</h1>
+            <ul class="nav-menu">
+                <li><a href="#dashboard" class="nav-link">Dashboard</a></li>
+                <li><a href="#trips" class="nav-link">Trips</a></li>
+                <li><a href="#vehicles" class="nav-link">Vehicles</a></li>
+                <li><a href="#profile" class="nav-link">Profile</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <!-- Dashboard Page -->
+        <section id="dashboard" class="page active">
+            <h2>Dashboard</h2>
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h3>My Trips</h3>
+                    <div id="my-trips" class="trip-list">
+                        <!-- Trips will be loaded here -->
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Quick Actions</h3>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="showCreateTripForm()">Create Trip</button>
+                        <button class="btn btn-secondary" onclick="showAddVehicleForm()">Add Vehicle</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Recent Activity</h3>
+                    <div id="recent-activity">
+                        <!-- Activity will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Trips Page -->
+        <section id="trips" class="page">
+            <h2>All Trips</h2>
+            <div class="trips-container">
+                <div class="trips-header">
+                    <button class="btn btn-primary" onclick="showCreateTripForm()">Create New Trip</button>
+                </div>
+                <div id="trips-list" class="trips-grid">
+                    <!-- Trips will be loaded here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Vehicles Page -->
+        <section id="vehicles" class="page">
+            <h2>My Vehicles</h2>
+            <div class="vehicles-container">
+                <div class="vehicles-header">
+                    <button class="btn btn-primary" onclick="showAddVehicleForm()">Add Vehicle</button>
+                </div>
+                <div id="vehicles-list" class="vehicles-grid">
+                    <!-- Vehicles will be loaded here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Profile Page -->
+        <section id="profile" class="page">
+            <h2>My Profile</h2>
+            <div class="profile-container">
+                <div class="profile-form">
+                    <form id="profile-form">
+                        <div class="form-group">
+                            <label for="email">Email:</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="full-name">Full Name:</label>
+                            <input type="text" id="full-name" name="full_name" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update Profile</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal for forms -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div id="modal-body">
+                <!-- Dynamic content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

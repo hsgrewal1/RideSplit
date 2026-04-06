@@ -1,0 +1,18 @@
+{
+  "name": "ridesplit-client",
+  "version": "1.0.0",
+  "description": "Frontend for RideSplit ride-sharing application",
+  "main": "index.js",
+  "scripts": {
+    "start": "live-server --port=8080 --host=localhost",
+    "build": "echo 'No build step needed for static site'",
+    "dev": "live-server --port=8080 --host=localhost --watch=."
+  },
+  "dependencies": {
+    "live-server": "^1.2.2"
+  },
+  "devDependencies": {},
+  "keywords": ["ridesplit", "frontend", "html", "css", "javascript"],
+  "author": "",
+  "license": "MIT"
+}

@@ -1,0 +1,463 @@
+openapi: 3.0.3
+info:
+  title: RideSplit API
+  description: API for RideSplit ride-sharing application
+  version: 1.0.0
+  contact:
+    name: RideSplit Team
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+
+paths:
+  /api/users:
+    get:
+      summary: Get all users
+      description: Retrieve a list of all users in the system
+      tags:
+        - Users
+      responses:
+        '200':
+          description: List of users retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+              example:
+                - id: 1
+                  email: john.doe@email.com
+                  full_name: John Doe
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/users/{email}:
+    get:
+      summary: Get user by email
+      description: Retrieve a specific user by their email address
+      tags:
+        - Users
+      parameters:
+        - name: email
+          in: path
+          required: true
+          schema:
+            type: string
+            format: email
+          example: john.doe@email.com
+      responses:
+        '200':
+          description: User retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/vehicles:
+    get:
+      summary: Get all vehicles
+      description: Retrieve a list of all vehicles with owner information
+      tags:
+        - Vehicles
+      responses:
+        '200':
+          description: List of vehicles retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VehicleWithOwner'
+              example:
+                - id: 1
+                  owner_id: 1
+                  make_model: Toyota Camry 2022
+                  mpg: 32.5
+                  users:
+                    email: john.doe@email.com
+                    full_name: John Doe
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/trips:
+    get:
+      summary: Get all trips
+      description: Retrieve a list of all trips with vehicle, driver, and passenger details
+      tags:
+        - Trips
+      responses:
+        '200':
+          description: List of trips retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TripWithDetails'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: Create a new trip
+      description: Create a new trip with the specified driver, vehicle, and distance
+      tags:
+        - Trips
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTripRequest'
+            example:
+              driver_email: john.doe@email.com
+              vehicle_id: 1
+              distance_miles: 45.5
+              fuel_price_per_gallon: 3.45
+      responses:
+        '201':
+          description: Trip created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trip'
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Driver not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/trips/{id}:
+    get:
+      summary: Get specific trip
+      description: Retrieve a specific trip with all details by ID
+      tags:
+        - Trips
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Trip retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TripWithDetails'
+        '404':
+          description: Trip not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/trips/{id}/passengers:
+    post:
+      summary: Add passenger to trip
+      description: Add a passenger to an existing trip with the amount they owe
+      tags:
+        - Passengers
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddPassengerRequest'
+            example:
+              passenger_email: jane.smith@email.com
+              amount_owed: 7.85
+      responses:
+        '201':
+          description: Passenger added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TripPassenger'
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/passengers/{id}/payment:
+    put:
+      summary: Mark passenger as paid
+      description: Mark a passenger's payment as completed
+      tags:
+        - Passengers
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Payment status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TripPassenger'
+        '404':
+          description: Passenger not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /health:
+    get:
+      summary: Health check
+      description: Check if the API server is running
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Server is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: OK
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2024-01-15T10:30:00.000Z"
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        email:
+          type: string
+          format: email
+          example: john.doe@email.com
+        full_name:
+          type: string
+          example: John Doe
+
+    Vehicle:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        owner_id:
+          type: integer
+          example: 1
+        make_model:
+          type: string
+          example: Toyota Camry 2022
+        mpg:
+          type: number
+          format: float
+          example: 32.5
+
+    VehicleWithOwner:
+      allOf:
+        - $ref: '#/components/schemas/Vehicle'
+        - type: object
+          properties:
+            users:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: john.doe@email.com
+                full_name:
+                  type: string
+                  example: John Doe
+
+    Trip:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        driver_id:
+          type: integer
+          example: 1
+        vehicle_id:
+          type: integer
+          example: 1
+        distance_miles:
+          type: number
+          format: float
+          example: 45.5
+        fuel_price_per_gallon:
+          type: number
+          format: float
+          example: 3.45
+
+    TripPassenger:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        trip_id:
+          type: integer
+          example: 1
+        passenger_email:
+          type: string
+          format: email
+          example: jane.smith@email.com
+        amount_owed:
+          type: number
+          format: float
+          example: 7.85
+        paid:
+          type: boolean
+          example: false
+
+    TripWithDetails:
+      allOf:
+        - $ref: '#/components/schemas/Trip'
+        - type: object
+          properties:
+            vehicles:
+              type: object
+              properties:
+                make_model:
+                  type: string
+                  example: Toyota Camry 2022
+                mpg:
+                  type: number
+                  format: float
+                  example: 32.5
+            users:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: john.doe@email.com
+                full_name:
+                  type: string
+                  example: John Doe
+            trip_passengers:
+              type: array
+              items:
+                $ref: '#/components/schemas/TripPassenger'
+
+    CreateTripRequest:
+      type: object
+      required:
+        - driver_email
+        - vehicle_id
+        - distance_miles
+        - fuel_price_per_gallon
+      properties:
+        driver_email:
+          type: string
+          format: email
+          example: john.doe@email.com
+        vehicle_id:
+          type: integer
+          minimum: 1
+          example: 1
+        distance_miles:
+          type: number
+          minimum: 0
+          example: 45.5
+        fuel_price_per_gallon:
+          type: number
+          minimum: 0
+          example: 3.45
+
+    AddPassengerRequest:
+      type: object
+      required:
+        - passenger_email
+        - amount_owed
+      properties:
+        passenger_email:
+          type: string
+          format: email
+          example: jane.smith@email.com
+        amount_owed:
+          type: number
+          minimum: 0
+          example: 7.85
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Internal server error

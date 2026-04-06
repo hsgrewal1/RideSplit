@@ -1,0 +1,32 @@
+-- 1. Create Users Table
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    email TEXT UNIQUE NOT NULL,
+    full_name TEXT
+);
+
+-- 2. Create Vehicles Table
+CREATE TABLE vehicles (
+    id SERIAL PRIMARY KEY,
+    owner_id INTEGER REFERENCES users(id),
+    make_model TEXT,
+    mpg NUMERIC(4,1)
+);
+
+-- 3. Create Trips Table
+CREATE TABLE trips (
+    id SERIAL PRIMARY KEY,
+    driver_id INTEGER REFERENCES users(id),
+    vehicle_id INTEGER REFERENCES vehicles(id),
+    distance_miles NUMERIC(6,2),
+    fuel_price_per_gallon NUMERIC(4,2)
+);
+
+-- 4. Create Trip Passengers Table
+CREATE TABLE trip_passengers (
+    id SERIAL PRIMARY KEY,
+    trip_id INTEGER REFERENCES trips(id),
+    passenger_email TEXT,
+    amount_owed NUMERIC(6,2),
+    paid BOOLEAN DEFAULT FALSE
+);
