@@ -20,89 +20,148 @@
     </nav>
 
     <main class="main-content">
-        <!-- Dashboard Page -->
+
+        <!-- ── Dashboard Page ── -->
         <section id="dashboard" class="page active">
             <h2>Dashboard</h2>
             <div class="dashboard-grid">
-                <div class="card">
-                    <h3>My Trips</h3>
-                    <div id="my-trips" class="trip-list">
-                        <!-- Trips will be loaded here -->
+
+                <!-- My Trips card -->
+                <div class="section-card">
+                    <div class="section-card-header" onclick="toggleSection('my-trips-body', this)">
+                        <div class="header-left">
+                            <h3>My Trips</h3>
+                        </div>
+                        <span class="section-toggle-arrow">▼</span>
+                    </div>
+                    <div id="my-trips-body" class="section-card-body collapsed">
+                        <div id="my-trips" class="trip-list" style="padding-top:16px;">
+                            <!-- Loaded by JS -->
+                        </div>
                     </div>
                 </div>
-                <div class="card">
-                    <h3>Quick Actions</h3>
-                    <div class="action-buttons">
-                        <button class="btn btn-primary" onclick="showCreateTripForm()">Create Trip</button>
-                        <button class="btn btn-secondary" onclick="showAddVehicleForm()">Add Vehicle</button>
+
+                <!-- Quick Actions card -->
+                <div class="section-card">
+                    <div class="section-card-header" onclick="toggleSection('quick-actions-body', this)">
+                        <div class="header-left">
+                            <h3>Quick Actions</h3>
+                        </div>
+                        <span class="section-toggle-arrow">▼</span>
+                    </div>
+                    <div id="quick-actions-body" class="section-card-body collapsed">
+                        <div class="action-buttons" style="padding-top:16px;">
+                            <button class="btn btn-primary" onclick="showCreateTripForm()">Create Trip</button>
+                            <button class="btn btn-secondary" onclick="showAddVehicleForm()">Add Vehicle</button>
+                        </div>
                     </div>
                 </div>
-                <div class="card">
-                    <h3>Recent Activity</h3>
-                    <div id="recent-activity">
-                        <!-- Activity will be loaded here -->
+
+                <!-- Recent Activity card -->
+                <div class="section-card">
+                    <div class="section-card-header" onclick="toggleSection('recent-activity-body', this)">
+                        <div class="header-left">
+                            <h3>Recent Activity</h3>
+                        </div>
+                        <span class="section-toggle-arrow">▼</span>
+                    </div>
+                    <div id="recent-activity-body" class="section-card-body collapsed">
+                        <div id="recent-activity" style="padding-top:16px;">
+                            <!-- Loaded by JS -->
+                        </div>
                     </div>
                 </div>
+
             </div>
         </section>
 
-        <!-- Trips Page -->
+        <!-- ── Trips Page ── -->
         <section id="trips" class="page">
             <h2>All Trips</h2>
-            <div class="trips-container">
-                <div class="trips-header">
-                    <button class="btn btn-primary" onclick="showCreateTripForm()">Create New Trip</button>
-                </div>
-                <div id="trips-list" class="trips-grid">
-                    <!-- Trips will be loaded here -->
-                </div>
+            <div class="trips-header">
+                <button class="btn btn-primary" onclick="showCreateTripForm()">Create New Trip</button>
+            </div>
+            <div id="trips-list">
+                <!-- Loaded by JS -->
             </div>
         </section>
 
-        <!-- Vehicles Page -->
+        <!-- ── Vehicles Page ── -->
         <section id="vehicles" class="page">
             <h2>My Vehicles</h2>
-            <div class="vehicles-container">
-                <div class="vehicles-header">
-                    <button class="btn btn-primary" onclick="showAddVehicleForm()">Add Vehicle</button>
+
+            <!-- Add Vehicle collapsible -->
+            <div class="section-card" style="margin-bottom:20px;">
+                <div class="section-card-header" onclick="toggleSection('add-vehicle-body', this)">
+                    <div class="header-left">
+                        <h3>Add a Vehicle</h3>
+                    </div>
+                    <span class="section-toggle-arrow">▼</span>
                 </div>
-                <div id="vehicles-list" class="vehicles-grid">
-                    <!-- Vehicles will be loaded here -->
+                <div id="add-vehicle-body" class="section-card-body collapsed">
+                    <div style="padding-top:16px;">
+                        <button class="btn btn-primary" onclick="showAddVehicleForm()">Add Vehicle</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- My Vehicles collapsible -->
+            <div class="section-card">
+                <div class="section-card-header" onclick="toggleSection('vehicles-list-body', this)">
+                    <div class="header-left">
+                        <h3>My Vehicles</h3>
+                    </div>
+                    <span class="section-toggle-arrow">▼</span>
+                </div>
+                <div id="vehicles-list-body" class="section-card-body collapsed">
+                    <div id="vehicles-list" style="padding-top:16px;">
+                        <!-- Loaded by JS -->
+                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- Profile Page -->
+        <!-- ── Profile Page ── -->
         <section id="profile" class="page">
             <h2>My Profile</h2>
-            <div class="profile-container">
-                <div class="profile-form">
-                    <form id="profile-form">
-                        <div class="form-group">
-                            <label for="email">Email:</label>
-                            <input type="email" id="email" name="email" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="full-name">Full Name:</label>
-                            <input type="text" id="full-name" name="full_name" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Update Profile</button>
-                    </form>
+
+            <div class="section-card">
+                <div class="section-card-header" onclick="toggleSection('profile-body', this)">
+                    <div class="header-left">
+                        <h3>Account Details</h3>
+                    </div>
+                    <span class="section-toggle-arrow">▼</span>
+                </div>
+                <div id="profile-body" class="section-card-body collapsed">
+                    <div class="profile-form" style="background:none; border:none; padding: 16px 0 4px;">
+                        <form id="profile-form">
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="email" name="email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="full-name">Full Name</label>
+                                <input type="text" id="full-name" name="full_name" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Update Profile</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </section>
+
     </main>
 
-    <!-- Modal for forms -->
+    <!-- Modal -->
     <div id="modal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal()">&times;</span>
-            <div id="modal-body">
-                <!-- Dynamic content will be loaded here -->
-            </div>
+            <div id="modal-body"></div>
         </div>
     </div>
 
     <script src="script.js"></script>
+</body>
+</html>ript>
 </body>
 </html>
