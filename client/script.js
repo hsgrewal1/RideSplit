@@ -1,28 +1,165 @@
-// API Configuration
+// ── Supabase Auth Client ───────────────────────────────────
+const { createClient } = supabase;
+const supabaseClient = createClient(
+    'https://lbhlyptmbnjmrrycpzce.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxiaGx5cHRtYm5qbXJyeWNwemNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTM1ODIsImV4cCI6MjA5MDk4OTU4Mn0.SSlcKLiRMM_3uuCDjcXt5Ey2xPkyty0XcGVMP0hTi3w'
+);
+
+// ── API Config ─────────────────────────────────────────────
 const API_BASE_URL = 'https://ridesplit.onrender.com';
 
-// Current user (for demo purposes)
-let currentUser = {
-    email: 'john.doe@email.com',
-    full_name: 'John Doe'
-};
+// Current user — set after login
+let currentUser = null;
 
-// Navigation
-function showPage(pageId) {
-    document.querySelectorAll('.page').forEach(page => {
-        page.classList.remove('active');
-    });
-    document.getElementById(pageId).classList.add('active');
+// ── On page load ───────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async function () {
+    // Check if user is already logged in
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (session) {
+        await initApp(session.user);
+    }
 
-    // Update active nav link
-    document.querySelectorAll('.nav-link').forEach(link => {
-        link.classList.remove('active');
-        if (link.getAttribute('href') === '#' + pageId) {
-            link.classList.add('active');
+    // Listen for auth state changes
+    supabaseClient.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+            await initApp(session.user);
+        } else if (event === 'SIGNED_OUT') {
+            showAuthScreen();
         }
     });
 
-    switch(pageId) {
+    // Profile form submit
+    const profileForm = document.getElementById('profile-form');
+    if (profileForm) {
+        profileForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            updateProfile();
+        });
+    }
+
+    // Nav links
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+            const pageId = this.getAttribute('href').substring(1);
+            showPage(pageId);
+        });
+    });
+});
+
+// ── Init app after login ───────────────────────────────────
+async function initApp(authUser) {
+    // Set currentUser from auth
+    currentUser = {
+        email: authUser.email,
+        full_name: authUser.user_metadata?.full_name || authUser.email
+    };
+
+    // Ensure user exists in our users table
+    await ensureUserInDb(currentUser.email, currentUser.full_name);
+
+    // Show app, hide auth
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+
+    showPage('dashboard');
+}
+
+// ── Ensure user row exists in DB ───────────────────────────
+async function ensureUserInDb(email, fullName) {
+    try {
+        await apiCall('/api/users/ensure', 'POST', { email, full_name: fullName });
+    } catch (err) {
+        // User might already exist — that's fine
+        console.log('User ensure:', err.message);
+    }
+}
+
+// ── Show auth screen ───────────────────────────────────────
+function showAuthScreen() {
+    currentUser = null;
+    document.getElementById('auth-screen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+}
+
+// ── Auth Tab Switch ────────────────────────────────────────
+function switchAuthTab(tab) {
+    document.getElementById('login-form').style.display = tab === 'login' ? 'block' : 'none';
+    document.getElementById('signup-form').style.display = tab === 'signup' ? 'block' : 'none';
+    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.auth-tab')[tab === 'login' ? 0 : 1].classList.add('active');
+    document.getElementById('login-error').textContent = '';
+    document.getElementById('signup-error').textContent = '';
+    document.getElementById('signup-success').textContent = '';
+}
+
+// ── Login ──────────────────────────────────────────────────
+async function handleLogin() {
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    const errorEl = document.getElementById('login-error');
+    errorEl.textContent = '';
+
+    if (!email || !password) {
+        errorEl.textContent = 'Please enter your email and password.';
+        return;
+    }
+
+    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    if (error) {
+        errorEl.textContent = error.message;
+    }
+}
+
+// ── Signup ─────────────────────────────────────────────────
+async function handleSignup() {
+    const fullName = document.getElementById('signup-name').value.trim();
+    const email = document.getElementById('signup-email').value.trim();
+    const password = document.getElementById('signup-password').value;
+    const errorEl = document.getElementById('signup-error');
+    const successEl = document.getElementById('signup-success');
+    errorEl.textContent = '';
+    successEl.textContent = '';
+
+    if (!fullName || !email || !password) {
+        errorEl.textContent = 'Please fill in all fields.';
+        return;
+    }
+
+    if (password.length < 6) {
+        errorEl.textContent = 'Password must be at least 6 characters.';
+        return;
+    }
+
+    const { error } = await supabaseClient.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name: fullName } }
+    });
+
+    if (error) {
+        errorEl.textContent = error.message;
+    } else {
+        successEl.textContent = 'Account created! Check your email to confirm, then log in.';
+    }
+}
+
+// ── Logout ─────────────────────────────────────────────────
+async function handleLogout() {
+    await supabaseClient.auth.signOut();
+}
+
+// ── Navigation ─────────────────────────────────────────────
+function showPage(pageId) {
+    document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+    document.getElementById(pageId).classList.add('active');
+
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === '#' + pageId) link.classList.add('active');
+    });
+
+    switch (pageId) {
         case 'dashboard': loadDashboard(); break;
         case 'trips':     loadTrips();     break;
         case 'vehicles':  loadVehicles();  break;
@@ -30,34 +167,13 @@ function showPage(pageId) {
     }
 }
 
-// Event listeners
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.nav-link').forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const pageId = this.getAttribute('href').substring(1);
-            showPage(pageId);
-        });
-    });
-
-    document.getElementById('profile-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        updateProfile();
-    });
-
-    showPage('dashboard');
-});
-
 // ── Collapsible sections ───────────────────────────────────
 function toggleSection(bodyId, headerEl) {
     const body = document.getElementById(bodyId);
     const arrow = headerEl.querySelector('.section-toggle-arrow');
     const isCollapsed = body.classList.contains('collapsed');
-
     body.classList.toggle('collapsed', !isCollapsed);
-    if (arrow) {
-        arrow.classList.toggle('open', isCollapsed);
-    }
+    if (arrow) arrow.classList.toggle('open', isCollapsed);
 }
 
 // ── Trip card toggle ───────────────────────────────────────
@@ -139,10 +255,9 @@ async function loadTrips() {
             <div class="trip-card">
                 <div class="trip-header" onclick="toggleTrip(${trip.id})">
                     <h3>${trip.vehicles.make_model}</h3>
-                    <span id="arrow-${trip.id}" style="color:var(--muted); font-size:14px;">▼</span>
+                    <span id="arrow-${trip.id}" style="color:var(--muted);font-size:14px;">▼</span>
                 </div>
-
-                <div id="trip-details-${trip.id}" style="display:none; margin-top:14px;">
+                <div id="trip-details-${trip.id}" style="display:none;margin-top:14px;">
                     <div class="trip-info">
                         <p><strong>Driver:</strong> ${trip.users.full_name} (${trip.users.email})</p>
                         <p><strong>Distance:</strong> ${trip.distance_miles} miles</p>
@@ -152,14 +267,14 @@ async function loadTrips() {
                     ${trip.trip_passengers && trip.trip_passengers.length > 0 ? `
                         <div class="passengers-list">
                             <h4>Passengers</h4>
-                            ${trip.trip_passengers.map(passenger => `
+                            ${trip.trip_passengers.map(p => `
                                 <div class="passenger-item">
-                                    <span>${passenger.passenger_email}</span>
+                                    <span>${p.passenger_email}</span>
                                     <div style="display:flex;align-items:center;gap:8px;">
-                                        <span>$${passenger.amount_owed}</span>
-                                        ${passenger.paid
+                                        <span>$${p.amount_owed}</span>
+                                        ${p.paid
                                             ? `<span class="payment-status paid">Paid</span>`
-                                            : `<button class="btn btn-sm btn-secondary" onclick="markAsPaid(${passenger.id})">Mark Paid</button>`
+                                            : `<button class="btn btn-sm btn-secondary" onclick="markAsPaid(${p.id})">Mark Paid</button>`
                                         }
                                     </div>
                                 </div>
@@ -218,11 +333,14 @@ function loadProfile() {
 }
 
 async function updateProfile() {
-    currentUser = {
-        email: document.getElementById('email').value,
-        full_name: document.getElementById('full-name').value
-    };
-    alert('Profile updated successfully!');
+    const fullName = document.getElementById('full-name').value;
+    currentUser.full_name = fullName;
+
+    await supabaseClient.auth.updateUser({
+        data: { full_name: fullName }
+    });
+
+    alert('Profile updated!');
 }
 
 // ── Modal ──────────────────────────────────────────────────
@@ -257,7 +375,6 @@ function showCreateTripForm() {
             <button type="submit" class="btn btn-primary" style="width:100%;margin-top:8px;">Create Trip</button>
         </form>
     `);
-
     loadVehiclesForSelect();
     document.getElementById('create-trip-form').addEventListener('submit', createTrip);
 }
@@ -317,21 +434,18 @@ function showAddVehicleForm() {
 
 async function addVehicle(e) {
     e.preventDefault();
-    const makeModel = document.getElementById('vehicle-make-model').value.trim();
-    const mpg = parseFloat(document.getElementById('vehicle-mpg').value);
-
     try {
         await apiCall('/api/vehicles', 'POST', {
             owner_email: currentUser.email,
-            make_model: makeModel,
-            mpg: mpg
+            make_model: document.getElementById('vehicle-make-model').value.trim(),
+            mpg: parseFloat(document.getElementById('vehicle-mpg').value)
         });
         closeModal();
         loadVehicles();
         alert('Vehicle added successfully!');
     } catch (error) {
         console.error('Failed to add vehicle:', error);
-        alert('Failed to add vehicle. Check that your API server is running and has a POST /api/vehicles route.');
+        alert('Failed to add vehicle. Please try again.');
     }
 }
 
@@ -386,8 +500,7 @@ async function markAsPaid(passengerId) {
     }
 }
 
-// Close modal on backdrop click
-window.onclick = function(event) {
+window.onclick = function (event) {
     const modal = document.getElementById('modal');
     if (event.target === modal) closeModal();
 };
