@@ -18,6 +18,7 @@
   --muted:          #666666;
   --text-secondary: #999999;
   --success:        #22C55E;
+  --error:          #EF4444;
   --radius-sm:      8px;
   --radius-md:      14px;
   --radius-lg:      20px;
@@ -38,16 +39,93 @@ body {
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
-  display: flex;
 }
 
-/* ── Page visibility (CRITICAL) ──────────────────────────── */
-.page {
-  display: none;
+/* ── Auth Screen ─────────────────────────────────────────── */
+#auth-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
 }
-.page.active {
-  display: block;
+
+.auth-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 40px 36px;
+  width: 100%;
+  max-width: 420px;
 }
+
+.auth-logo {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--white);
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.auth-subtitle {
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+  margin-bottom: 28px;
+}
+
+.auth-tabs {
+  display: flex;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+  margin-bottom: 24px;
+  gap: 4px;
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 9px;
+  border-radius: calc(var(--radius-sm) - 2px);
+  background: transparent;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.auth-tab.active {
+  background: var(--surface);
+  color: var(--white);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+
+.auth-error {
+  color: var(--error);
+  font-size: 13px;
+  margin-top: 10px;
+  min-height: 20px;
+}
+
+.auth-success {
+  color: var(--success);
+  font-size: 13px;
+  margin-top: 10px;
+  min-height: 20px;
+}
+
+/* ── App wrapper ─────────────────────────────────────────── */
+#app {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ── Page visibility ─────────────────────────────────────── */
+.page { display: none; }
+.page.active { display: block; }
 
 /* ── Sidebar / Nav ───────────────────────────────────────── */
 nav.navbar {
@@ -113,6 +191,12 @@ nav.navbar {
   color: var(--purple);
 }
 
+.nav-footer {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
 /* ── Main content area ───────────────────────────────────── */
 main.main-content {
   margin-left: var(--nav-width);
@@ -161,9 +245,7 @@ p { color: var(--text-secondary); font-size: 14px; }
   transition: border-color var(--transition);
 }
 
-.section-card:hover {
-  border-color: rgba(255,255,255,0.12);
-}
+.section-card:hover { border-color: rgba(255,255,255,0.12); }
 
 .section-card-header {
   display: flex;
@@ -174,20 +256,12 @@ p { color: var(--text-secondary); font-size: 14px; }
   user-select: none;
 }
 
-.section-card-header:hover h3 {
-  color: var(--purple);
-}
+.section-card-header:hover h3 { color: var(--purple); }
 
 .section-card-header .header-left {
   display: flex;
   align-items: center;
   gap: 12px;
-}
-
-.section-card-header .header-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
 }
 
 .section-toggle-arrow {
@@ -197,18 +271,14 @@ p { color: var(--text-secondary); font-size: 14px; }
   flex-shrink: 0;
 }
 
-.section-toggle-arrow.open {
-  transform: rotate(180deg);
-}
+.section-toggle-arrow.open { transform: rotate(180deg); }
 
 .section-card-body {
   padding: 0 22px 20px;
   border-top: 1px solid var(--border);
 }
 
-.section-card-body.collapsed {
-  display: none;
-}
+.section-card-body.collapsed { display: none; }
 
 /* ── Dashboard grid ──────────────────────────────────────── */
 .dashboard-grid {
@@ -229,14 +299,10 @@ p { color: var(--text-secondary); font-size: 14px; }
 }
 
 .trip-card:last-child,
-.vehicle-card:last-child {
-  margin-bottom: 0;
-}
+.vehicle-card:last-child { margin-bottom: 0; }
 
 .trip-card:hover,
-.vehicle-card:hover {
-  border-color: var(--border-hover);
-}
+.vehicle-card:hover { border-color: var(--border-hover); }
 
 .trip-header {
   display: flex;
@@ -292,7 +358,7 @@ p { color: var(--text-secondary); font-size: 14px; }
   font-weight: 600;
 }
 
-/* ── Action buttons row ──────────────────────────────────── */
+/* ── Action buttons ──────────────────────────────────────── */
 .action-buttons {
   display: flex;
   gap: 10px;
@@ -340,10 +406,7 @@ button, .btn {
   background: var(--surface);
 }
 
-.btn-sm {
-  padding: 6px 12px;
-  font-size: 12px;
-}
+.btn-sm { padding: 6px 12px; font-size: 12px; }
 
 /* ── Forms & Inputs ──────────────────────────────────────── */
 .form-group { margin-bottom: 16px; }
@@ -379,37 +442,13 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 0 0 3px var(--purple-dim);
 }
 
-/* ── Profile form ────────────────────────────────────────── */
-.profile-container {
-  max-width: 480px;
-}
-
-.profile-form {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 28px;
-}
-
 /* ── Trips/Vehicles page headers ─────────────────────────── */
 .trips-header,
-.vehicles-header {
-  margin-bottom: 20px;
-}
+.vehicles-header { margin-bottom: 20px; }
 
 /* ── Loading / Empty states ──────────────────────────────── */
-.loading {
-  color: var(--muted);
-  font-size: 14px;
-  padding: 20px 0;
-}
-
-.empty-state {
-  color: var(--muted);
-  font-size: 14px;
-  padding: 32px 0;
-  text-align: center;
-}
+.loading { color: var(--muted); font-size: 14px; padding: 20px 0; }
+.empty-state { color: var(--muted); font-size: 14px; padding: 32px 0; text-align: center; }
 
 /* ── Modal ───────────────────────────────────────────────── */
 #modal {
@@ -418,7 +457,6 @@ input:focus, select:focus, textarea:focus {
   inset: 0;
   background: rgba(0,0,0,0.80);
   backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
   z-index: 1000;
   padding: 40px 20px;
   overflow-y: auto;
@@ -488,6 +526,7 @@ input:focus, select:focus, textarea:focus {
   .nav-container { flex-direction: row; align-items: center; }
   .nav-menu { flex-direction: row; gap: 4px; }
   .nav-logo { padding-bottom: 0; border-bottom: none; margin-bottom: 0; }
+  .nav-footer { display: none; }
 
   main.main-content {
     margin-left: 0;
@@ -495,5 +534,5 @@ input:focus, select:focus, textarea:focus {
     padding: 20px 16px;
   }
 
-  body { flex-direction: column; }
+  #app { flex-direction: column; }
 }
