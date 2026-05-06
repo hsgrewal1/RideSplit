@@ -72,6 +72,33 @@ app.get('/api/users/:email', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+// POST /api/users/ensure - Create user if they don't exist
+app.post('/api/users/ensure', async (req, res) => {
+  try {
+    const { email, full_name } = req.body;
+
+    // Check if user already exists
+    const { data: existing } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', email)
+      .single();
+
+    if (existing) return res.json(existing);
+
+    // Create new user
+    const { data, error } = await supabase
+      .from('users')
+      .insert({ email, full_name })
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.status(201).json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // GET /api/vehicles - Get all vehicles
 app.get('/api/vehicles', async (req, res) => {
