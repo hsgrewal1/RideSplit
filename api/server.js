@@ -32,6 +32,12 @@ const addPassengerSchema = Joi.object({
   amount_owed: Joi.number().positive().required()
 });
 
+const addVehicleSchema = Joi.object({
+  owner_email: Joi.string().email().required(),
+  make_model: Joi.string().min(1).required(),
+  mpg: Joi.number().positive().required()
+});
+
 // Routes
 
 // GET /api/users - Get all users
@@ -80,6 +86,45 @@ app.get('/api/vehicles', async (req, res) => {
     if (error) throw error;
     
     res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/vehicles - Add a new vehicle
+app.post('/api/vehicles', async (req, res) => {
+  try {
+    const { error: validationError } = addVehicleSchema.validate(req.body);
+    if (validationError) {
+      return res.status(400).json({ error: validationError.details[0].message });
+    }
+
+    const { owner_email, make_model, mpg } = req.body;
+
+    // Look up the owner's ID from their email
+    const { data: owner, error: ownerError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', owner_email)
+      .single();
+
+    if (ownerError || !owner) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const { data, error } = await supabase
+      .from('vehicles')
+      .insert({
+        owner_id: owner.id,
+        make_model,
+        mpg
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    res.status(201).json(data);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
