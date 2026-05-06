@@ -12,8 +12,15 @@ function showPage(pageId) {
     document.querySelectorAll('.page').forEach(page => {
         page.classList.remove('active');
     });
-
     document.getElementById(pageId).classList.add('active');
+
+    // Update active nav link
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === '#' + pageId) {
+            link.classList.add('active');
+        }
+    });
 
     switch(pageId) {
         case 'dashboard': loadDashboard(); break;
@@ -23,7 +30,7 @@ function showPage(pageId) {
     }
 }
 
-// Event listeners for navigation
+// Event listeners
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', function(e) {
@@ -41,7 +48,28 @@ document.addEventListener('DOMContentLoaded', function() {
     showPage('dashboard');
 });
 
-// API Helper
+// ── Collapsible sections ───────────────────────────────────
+function toggleSection(bodyId, headerEl) {
+    const body = document.getElementById(bodyId);
+    const arrow = headerEl.querySelector('.section-toggle-arrow');
+    const isCollapsed = body.classList.contains('collapsed');
+
+    body.classList.toggle('collapsed', !isCollapsed);
+    if (arrow) {
+        arrow.classList.toggle('open', isCollapsed);
+    }
+}
+
+// ── Trip card toggle ───────────────────────────────────────
+function toggleTrip(tripId) {
+    const details = document.getElementById(`trip-details-${tripId}`);
+    const arrow = document.getElementById(`arrow-${tripId}`);
+    const isHidden = details.style.display === 'none';
+    details.style.display = isHidden ? 'block' : 'none';
+    arrow.textContent = isHidden ? '▲' : '▼';
+}
+
+// ── API Helper ─────────────────────────────────────────────
 async function apiCall(endpoint, method = 'GET', data = null) {
     try {
         const options = {
@@ -80,8 +108,15 @@ async function loadDashboard() {
                 </div>
             `).join('');
 
-        document.getElementById('recent-activity').innerHTML =
-            `<p>${myTrips[0]?.vehicles.make_model || 'No recent activity'}</p>`;
+        document.getElementById('recent-activity').innerHTML = myTrips.length === 0
+            ? '<p style="color:var(--muted);font-size:14px;">No recent activity</p>'
+            : myTrips.slice(0, 5).map(trip => `
+                <div class="trip-item">
+                    <span style="color:var(--purple);">🚗</span>
+                    Trip in <strong>${trip.vehicles.make_model}</strong> — ${trip.distance_miles} mi
+                    <br><small>${new Date(trip.created_at || Date.now()).toLocaleDateString()}</small>
+                </div>
+            `).join('');
     } catch (error) {
         console.error('Failed to load dashboard:', error);
     }
@@ -102,35 +137,43 @@ async function loadTrips() {
 
         tripsContainer.innerHTML = trips.map(trip => `
             <div class="trip-card">
-                <h3>${trip.vehicles.make_model}</h3>
-                <div class="trip-info">
-                    <p><strong>Driver:</strong> ${trip.users.full_name} (${trip.users.email})</p>
-                    <p><strong>Distance:</strong> ${trip.distance_miles} miles</p>
-                    <p><strong>Fuel Price:</strong> $${trip.fuel_price_per_gallon}/gallon</p>
-                    <p><strong>MPG:</strong> ${trip.vehicles.mpg}</p>
+                <div class="trip-header" onclick="toggleTrip(${trip.id})">
+                    <h3>${trip.vehicles.make_model}</h3>
+                    <span id="arrow-${trip.id}" style="color:var(--muted); font-size:14px;">▼</span>
                 </div>
-                ${trip.trip_passengers && trip.trip_passengers.length > 0 ? `
-                    <div class="passengers-list">
-                        <h4>Passengers:</h4>
-                        ${trip.trip_passengers.map(passenger => `
-                            <div class="passenger-item">
-                                <span>${passenger.passenger_email}</span>
-                                <div>
-                                    <span>$${passenger.amount_owed}</span>
-                                    ${passenger.paid
-                                        ? `<span class="payment-status paid">Paid</span>`
-                                        : `<button class="btn btn-sm" onclick="markAsPaid(${passenger.id})">Mark Paid</button>`
-                                    }
-                                </div>
-                            </div>
-                        `).join('')}
+
+                <div id="trip-details-${trip.id}" style="display:none; margin-top:14px;">
+                    <div class="trip-info">
+                        <p><strong>Driver:</strong> ${trip.users.full_name} (${trip.users.email})</p>
+                        <p><strong>Distance:</strong> ${trip.distance_miles} miles</p>
+                        <p><strong>Fuel Price:</strong> $${trip.fuel_price_per_gallon}/gallon</p>
+                        <p><strong>MPG:</strong> ${trip.vehicles.mpg}</p>
                     </div>
-                ` : '<p>No passengers yet</p>'}
-                ${trip.users.email === currentUser.email ? `
-                    <button class="btn btn-secondary" onclick="showAddPassengerForm(${trip.id})">Add Passenger</button>
-                ` : `
-                    <button class="btn btn-primary" onclick="joinTrip(${trip.id})">Join Trip</button>
-                `}
+                    ${trip.trip_passengers && trip.trip_passengers.length > 0 ? `
+                        <div class="passengers-list">
+                            <h4>Passengers</h4>
+                            ${trip.trip_passengers.map(passenger => `
+                                <div class="passenger-item">
+                                    <span>${passenger.passenger_email}</span>
+                                    <div style="display:flex;align-items:center;gap:8px;">
+                                        <span>$${passenger.amount_owed}</span>
+                                        ${passenger.paid
+                                            ? `<span class="payment-status paid">Paid</span>`
+                                            : `<button class="btn btn-sm btn-secondary" onclick="markAsPaid(${passenger.id})">Mark Paid</button>`
+                                        }
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : '<p style="color:var(--muted);font-size:13px;margin-top:10px;">No passengers yet</p>'}
+                    <div style="margin-top:14px;">
+                        ${trip.users.email === currentUser.email ? `
+                            <button class="btn btn-secondary" onclick="showAddPassengerForm(${trip.id})">Add Passenger</button>
+                        ` : `
+                            <button class="btn btn-primary" onclick="joinTrip(${trip.id})">Join Trip</button>
+                        `}
+                    </div>
+                </div>
             </div>
         `).join('');
     } catch (error) {
@@ -149,14 +192,14 @@ async function loadVehicles() {
         const myVehicles = vehicles.filter(v => v.users.email === currentUser.email);
 
         if (myVehicles.length === 0) {
-            vehiclesContainer.innerHTML = '<div class="empty-state">No vehicles found. Add one above!</div>';
+            vehiclesContainer.innerHTML = '<div class="empty-state">No vehicles yet. Add one above!</div>';
             return;
         }
 
         vehiclesContainer.innerHTML = myVehicles.map(vehicle => `
             <div class="vehicle-card">
                 <h3>${vehicle.make_model}</h3>
-                <div class="vehicle-info">
+                <div class="vehicle-info" style="margin-top:8px;">
                     <p><strong>MPG:</strong> ${vehicle.mpg}</p>
                     <p><strong>Owner:</strong> ${vehicle.users.full_name}</p>
                 </div>
@@ -269,13 +312,11 @@ function showAddVehicleForm() {
             <button type="submit" class="btn btn-primary" style="width:100%;margin-top:8px;">Add Vehicle</button>
         </form>
     `);
-
     document.getElementById('add-vehicle-form').addEventListener('submit', addVehicle);
 }
 
 async function addVehicle(e) {
     e.preventDefault();
-
     const makeModel = document.getElementById('vehicle-make-model').value.trim();
     const mpg = parseFloat(document.getElementById('vehicle-mpg').value);
 
@@ -285,7 +326,6 @@ async function addVehicle(e) {
             make_model: makeModel,
             mpg: mpg
         });
-
         closeModal();
         loadVehicles();
         alert('Vehicle added successfully!');
@@ -311,7 +351,6 @@ function showAddPassengerForm(tripId) {
             <button type="submit" class="btn btn-primary" style="width:100%;margin-top:8px;">Add Passenger</button>
         </form>
     `);
-
     document.getElementById('add-passenger-form').addEventListener('submit', (e) => addPassenger(e, tripId));
 }
 
@@ -347,7 +386,7 @@ async function markAsPaid(passengerId) {
     }
 }
 
-// Close modal when clicking the backdrop
+// Close modal on backdrop click
 window.onclick = function(event) {
     const modal = document.getElementById('modal');
     if (event.target === modal) closeModal();
